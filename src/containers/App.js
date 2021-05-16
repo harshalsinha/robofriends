@@ -1,32 +1,43 @@
-import React, {useState, useEffect} from 'react';
+import React, {Component} from 'react';
+import { connect } from 'react-redux';
 import Cardlist from '../components/cardlist';
 import SearchBox from '../components/SearchBox';
 import Scroll from '../components/scroll';
 import ErrorBoudary from '../components/ErrorBoundary';
+import { setSearchField, requestRobots } from '../Actions.js';
 
-function App (){
+const mapStateToProps = state => {
+    return{
+        searchField: state.searchRobots.searchField,
+        robots: state.requestRobots.robots,
+        isPending: state.requestRobots.isPending,
+        error: state.requestRobots.error,
+    }
+}
 
-    const [robots, setRobots] = useState([])
-    const [searchField, setSearchField] = useState('');
+const mapDispatchToProps = (dispatch) => {
+    return{
+        onSearchChange: (event) => dispatch(setSearchField(event.target.value)),
+        onRequestRobots: () => dispatch(requestRobots())
+    }
+}
 
-    useEffect(() => {
-        fetch('http://jsonplaceholder.typicode.com/users').then( response => {
-            response.json().then(users => {
-                setRobots(users);
-            })
-        })
-    }, [])
+class App extends Component{
 
-    let filteredRobots = robots.filter((robot) => {
-        return robot.name.toLowerCase().includes(searchField.toLowerCase())
-    })
-
-    function onSearchChange(event){
-            setSearchField(event.target.value)
+    componentDidMount(){
+        this.props.onRequestRobots()
     }
     
-    return (
-            !robots.length ? 
+    render(){
+
+        const { searchField, robots, onSearchChange, isPending } = this.props;
+
+        let filteredRobots = robots.filter((robot) => {
+            return robot.name.toLowerCase().includes(searchField.toLowerCase())
+        })
+
+        return (
+            isPending ? 
             <h1>Loading</h1> : 
             (
                 <div className='tc'>
@@ -40,6 +51,6 @@ function App (){
                     </ErrorBoudary>
                 </div>
             )
-    )
+    )};
 };
-export default App;
+export default connect(mapStateToProps, mapDispatchToProps)(App);
